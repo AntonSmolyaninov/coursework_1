@@ -7,10 +7,8 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def filter_df_by_month(
-    df: pd.DataFrame,
-    date_str: str
-) -> pd.DataFrame:
+def filter_df_by_month(df: pd.DataFrame, date_str: str) -> pd.DataFrame:
+    """Фильтрует DataFrame по месяцу для заданной даты."""
     logger.info(f"Фильтрация операций по месяцу для даты {date_str}")
     dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
     start = dt.replace(day=1, hour=0, minute=0, second=0)
@@ -22,6 +20,7 @@ def filter_df_by_month(
 
 
 def get_card_spent(df: pd.DataFrame) -> List[Dict[str, Any]]:
+    """Рассчитывает суммы расходов и кешбэка по картам на основе DataFrame."""
     logger.info("Расчет сумм расходов и кешбэка по картам")
     # Ключ - 4 цифры карты, значения - dict с last_digits, total_spent, cashback
     result: Dict[str, Dict[str, Any]] = {}
@@ -40,14 +39,12 @@ def get_card_spent(df: pd.DataFrame) -> List[Dict[str, Any]]:
     return sorted(result.values(), key=lambda x: x["total_spent"], reverse=True)
 
 
-def get_top_transactions(
-        df: pd.DataFrame,
-        n: int = 5
-) -> List[Dict[str, Any]]:
+def get_top_transactions(df: pd.DataFrame, n: int = 5) -> List[Dict[str, Any]]:
+    """Формирует топ-5 транзакций по сумме из DataFrame."""
     logger.info(f"Формируем топ-{n} транзакций по сумме")
 
     # Убедимся, что столбец "Дата операции" в формате datetime
-    df["Дата операции"] = pd.to_datetime(df["Дата операции"], errors='coerce', dayfirst=True)
+    df["Дата операции"] = pd.to_datetime(df["Дата операции"], errors="coerce", dayfirst=True)
 
     # Отбор топ-наиболее значимых транзакций
     df = df.sort_values("Сумма операции", ascending=False).head(n)
@@ -65,13 +62,8 @@ def get_top_transactions(
     ]
 
 
-def search_transactions(
-        df: pd.DataFrame,
-        query: str
-) -> List[Dict[str, Any]]:
-    """
-    Возвращает все транзакции, содержащие 'query' (без учета регистра) в описании или категории.
-    """
+def search_transactions(df: pd.DataFrame, query: str) -> List[Dict[str, Any]]:
+    """Возвращает все транзакции, содержащие 'query' (без учета регистра) в описании или категории."""
     logger.info(f"Выполняется поиск: '{query}'")
 
     # Приведение запроса к нижнему регистру

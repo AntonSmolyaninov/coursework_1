@@ -5,6 +5,7 @@ import time
 import requests
 from dotenv import load_dotenv
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 
@@ -23,10 +24,7 @@ def get_currency_rates(currency_list: list[str]) -> list[dict]:
         for code in currency_list:
             rate_info = data.get(code)
             if rate_info:
-                rates.append({
-                    "currency": code,
-                    "rate": round(rate_info["Value"], 2)
-                })
+                rates.append({"currency": code, "rate": round(rate_info["Value"], 2)})
         logger.info(f"Получены курсы валют: {rates}")
         return rates
     except requests.exceptions.RequestException as e:

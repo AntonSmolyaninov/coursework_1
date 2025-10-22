@@ -1,6 +1,8 @@
 import logging
 from datetime import datetime
+
 import pandas as pd
+
 from src.market_apis import get_currency_rates, get_stock_prices
 from src.services import filter_df_by_month, get_card_spent, get_top_transactions
 

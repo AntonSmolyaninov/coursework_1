@@ -13,9 +13,10 @@ logger = logging.getLogger(__name__)
 
 # Декоратор для сохранения отчетов в файл
 def save_report(func: Optional[Callable] = None, filename: Optional[str] = None) -> Callable:
-    """ Декоратор для сохранения результата функции в JSON-файл.
-       Если не указан `filename`, имя файла будет сформировано автоматически на основе имени функции
-       и текущей даты/времени."""
+    """Декоратор для сохранения результата функции в JSON-файл.
+    Если не указан `filename`, имя файла будет сформировано автоматически на основе имени функции
+    и текущей даты/времени."""
+
     def decorator(inner_func: Callable) -> Callable:
         @wraps(inner_func)
         def wrapper(*args: Any, **kwargs: Any) -> Union[pd.DataFrame, Any]:
@@ -76,6 +77,6 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
 
     # Преобразуем дату в строку, если результат не пустой
     if not result.empty:
-        result["date"] = result["date"].dt.strftime('%Y-%m-%d')  # Преобразование даты в строку
+        result["date"] = result["date"].dt.strftime("%Y-%m-%d")  # Преобразование даты в строку
 
     return result
