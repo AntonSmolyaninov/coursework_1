@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 # Декоратор для сохранения отчетов в файл
 def save_report(func: Optional[Callable] = None, filename: Optional[str] = None) -> Callable:
+    """ Декоратор для сохранения результата функции в JSON-файл.
+       Если не указан `filename`, имя файла будет сформировано автоматически на основе имени функции
+       и текущей даты/времени."""
     def decorator(inner_func: Callable) -> Callable:
         @wraps(inner_func)
         def wrapper(*args: Any, **kwargs: Any) -> Union[pd.DataFrame, Any]:
@@ -20,12 +23,19 @@ def save_report(func: Optional[Callable] = None, filename: Optional[str] = None)
             output_filename = filename
             if not output_filename:
                 output_filename = f"{inner_func.__name__}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+
+            # Логирование результата перед записью
+            logger.info(f"Result for {inner_func.__name__}: {result}")
+
             with open(output_filename, "w", encoding="utf-8") as f:
-                # Сохраняем DataFrame как список словарей (JSON)
-                if isinstance(result, pd.DataFrame):
-                    json.dump(result.to_dict(orient="records"), f, ensure_ascii=False, indent=2)
+                # Преобразование результата в JSON строку
+                if isinstance(result, pd.DataFrame) and not result.empty:
+                    json_string = json.dumps(result.to_dict(orient="records"), ensure_ascii=False, indent=2)
+                    f.write(json_string)  # Пишем в файл все за один раз
                 else:
-                    json.dump(result, f, ensure_ascii=False, indent=2)
+                    logger.warning("The result is not a DataFrame or is empty, not saving to file.")
+                    f.write("[]")  # Записываем пустой список
+
             logger.info(f"Отчёт записан в: {output_filename}")
             return result
 
@@ -60,5 +70,12 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
     result = df[
         (df["category"].str.lower() == category.lower()) & (df["date"] >= three_months_ago) & (df["date"] <= dt)
     ]
+
+    # Логирование количества найденных строк
     logger.info(f"rows found: {len(result)}")
+
+    # Преобразуем дату в строку, если результат не пустой
+    if not result.empty:
+        result["date"] = result["date"].dt.strftime('%Y-%m-%d')  # Преобразование даты в строку
+
     return result

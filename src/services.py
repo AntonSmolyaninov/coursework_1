@@ -41,36 +41,52 @@ def get_card_spent(df: pd.DataFrame) -> List[Dict[str, Any]]:
 
 
 def get_top_transactions(
-    df: pd.DataFrame,
-    n: int = 5
+        df: pd.DataFrame,
+        n: int = 5
 ) -> List[Dict[str, Any]]:
     logger.info(f"Формируем топ-{n} транзакций по сумме")
+
+    # Убедимся, что столбец "Дата операции" в формате datetime
+    df["Дата операции"] = pd.to_datetime(df["Дата операции"], errors='coerce', dayfirst=True)
+
+    # Отбор топ-наиболее значимых транзакций
     df = df.sort_values("Сумма операции", ascending=False).head(n)
     logger.info(f"Топ-транзакций собрано: {len(df)}")
+
+    # Заполняем список с необходимыми данными
     return [
         {
-            "date": row["Дата операции"].strftime("%d.%m.%Y"),
-            "amount": round(row["Сумма операции"], 2),
-            "category": row["Категория"],
-            "description": row["Описание"],
+            "date": row["Дата операции"].strftime("%d.%m.%Y"),  # Преобразуем дату в строку
+            "amount": round(row["Сумма операции"], 2),  # Округляем сумму до двух знаков
+            "category": row["Категория"],  # Получаем категорию
+            "description": row["Описание"],  # Получаем описание
         }
         for _, row in df.iterrows()
     ]
 
 
 def search_transactions(
-    df: pd.DataFrame,
-    query: str
+        df: pd.DataFrame,
+        query: str
 ) -> List[Dict[str, Any]]:
     """
     Возвращает все транзакции, содержащие 'query' (без учета регистра) в описании или категории.
     """
     logger.info(f"Выполняется поиск: '{query}'")
+
+    # Приведение запроса к нижнему регистру
     q = query.lower()
+
+    # Преобразование DataFrame в список словарей
     records = df.to_dict("records")
+
+    # Фильтрация записей
     filtered = filter(
-        lambda tx: q in str(tx.get("description", "")).lower() or q in str(tx.get("category", "")).lower(), records
+        lambda tx: q in str(tx.get("Описание", "")).lower() or q in str(tx.get("Категория", "")).lower(), records
     )
+
+    # Преобразование фильтруемых записей обратно в список
     result: List[Dict[str, Any]] = list(filtered)
     logger.info(f"Найдено {len(result)} подходящих транзакций")
+
     return result

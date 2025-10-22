@@ -16,21 +16,28 @@ def get_currency_rates(currency_list: list[str]) -> list[dict]:
     url = "https://www.cbr-xml-daily.ru/daily_json.js"
     try:
         resp = requests.get(url, timeout=10)
-        resp.encoding = "utf-8"
-        resp.raise_for_status()
-        data = resp.json()["Valute"]
+        resp.raise_for_status()  # Проверяем статус ответа
+        data = resp.json().get("Valute", {})
+
         rates = []
         for code in currency_list:
-            if code in data:
-                rates.append({"currency": code, "rate": round(data[code]["Value"], 2)})
+            rate_info = data.get(code)
+            if rate_info:
+                rates.append({
+                    "currency": code,
+                    "rate": round(rate_info["Value"], 2)
+                })
         logger.info(f"Получены курсы валют: {rates}")
         return rates
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Ошибка при запросе к API: {e}")
+        return []
+    except KeyError as e:
+        logger.error(f"Неверный ответ от API: отсутствует ключ {e}")
+        return []
     except Exception as e:
         logger.error(f"Ошибка получения курсов валют: {e}")
         return []
-
-
-load_dotenv()
 
 
 def get_stock_prices(stock_list: list[str]) -> list[dict]:
